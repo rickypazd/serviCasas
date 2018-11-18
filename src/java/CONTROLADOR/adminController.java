@@ -8,6 +8,10 @@ package CONTROLADOR;
 import Conexion.Conexion;
 import Firebasse.DataToSend;
 import Firebasse.Notificador;
+import MODELO.CASA;
+import MODELO.COMENTARIO;
+import MODELO.COSTO;
+import MODELO.FOTOS;
 import MODELO.usuario.USUARIO;
 
 import UTILES.RESPUESTA;
@@ -66,6 +70,7 @@ public class adminController extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        //<editor-fold defaultstate="collapsed" desc="CONFIGURACIONES">
         Conexion con = new Conexion(URL.db_usr, URL.db_pass);
         con.Transacction();
         request.setCharacterEncoding("UTF-8");
@@ -75,18 +80,67 @@ public class adminController extends HttpServlet {
         String tokenAcceso = request.getParameter("TokenAcceso");
         boolean retornar = true;
         String html = "";
+//</editor-fold>
         if (tokenAcceso.equals(URL.TokenAcceso)) {
             switch (evento) {
+                //<editor-fold defaultstate="collapsed" desc="USUARIO">
                 case "registrar_usuario":
                     html = registrar_usuario(request, con);
                     break;
                 case "login":
                     html = login(request, con);
                     break;
+                //</editor-fold>
+                //<editor-fold defaultstate="collapsed" desc="CASA">
+                case "registrar_casa":
+                    html = registrar_casa(request, con);
+                    break;
+                case "getall_casa":
+                    html = getall_casa(request, con);
+                    break;
+                case "getbyid_casa":
+                    html = getbyid_casa(request, con);
+                    break;
+                //</editor-fold>
+                //<editor-fold defaultstate="collapsed" desc="COMENTARIO">
+                case "registrar_comentario":
+                    html = registrar_comentario(request, con);
+                    break;
+                case "getall_comentario":
+                    html = getall_comentario(request, con);
+                    break;
+                case "getbyid_comentario":
+                    html = getbyid_comentario(request, con);
+                    break;
+                //</editor-fold>
+                //<editor-fold defaultstate="collapsed" desc="COSTO">
+                case "registrar_costo":
+                    html = registrar_costo(request, con);
+                    break;
+                case "getall_costo":
+                    html = getall_costo(request, con);
+                    break;
+                case "getbyid_costo":
+                    html = getbyid_costo(request, con);
+                    break;
+                //</editor-fold>    
+                //<editor-fold defaultstate="collapsed" desc="FOTOS">
+                case "registrar_fotos":
+                    html = registrar_fotos(request, con);
+                    break;
+                case "getall_fotos":
+                    html = getall_fotos(request, con);
+                    break;
+                case "getbyid_fotos":
+                    html = getbyid_fotos(request, con);
+                    break;
+                //</editor-fold> 
                 case "descargar":
                     descargar(request, response, con);
                     retornar = false;
                     break;
+
+                //<editor-fold defaultstate="collapsed" desc="ERRORES">
                 default:
                     RESPUESTA resp = new RESPUESTA(0, "Servisis: No se encontro el parametro evento.", "Servicio no encontrado.", "{}");
                     html = resp.toString();
@@ -96,11 +150,14 @@ public class adminController extends HttpServlet {
             RESPUESTA resp = new RESPUESTA(0, "Servisis: Token de acceso erroneo.", "Token denegado", "{}");
             html = resp.toString();
         }
+//</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="RESPONSE">
         con.commit();
         con.Close();
         if (retornar) {
             response.getWriter().write(html);
         }
+        //</editor-fold>
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
@@ -171,6 +228,296 @@ public class adminController extends HttpServlet {
 
     }
 
+    //<editor-fold defaultstate="collapsed" desc="CASA">
+    private String registrar_casa(HttpServletRequest request, Conexion con) {
+        String nameAlert = "Casa";
+        try {
+            //int id= Integer.parseInt(request.getParameter("id"));
+            int id_usuario = Integer.parseInt(request.getParameter("id_usuario"));
+            double precio = Double.parseDouble(request.getParameter("precio"));
+            int cant_dormitorios = Integer.parseInt(request.getParameter("cant_dormitorios"));
+            int cant_banhos = Integer.parseInt(request.getParameter("cant_banhos"));
+            int metros2 = Integer.parseInt(request.getParameter("metros2"));
+            String descripcion = request.getParameter("descripcion");
+            double lat = Double.parseDouble(request.getParameter("lat"));
+            double lng = Double.parseDouble(request.getParameter("lng"));
+            String direccion = request.getParameter("direccion");
+            int tipo_public = Integer.parseInt(request.getParameter("tipo_public"));
+            CASA casa = new CASA(con);
+            casa.setId_usuario(id_usuario);
+            casa.setPrecio(precio);
+            casa.setCant_dormitorios(cant_dormitorios);
+            casa.setCant_banhos(cant_banhos);
+            casa.setMetros2(metros2);
+            casa.setDescripcion(descripcion);
+            casa.setLat(lat);
+            casa.setLng(lng);
+            casa.setDescripcion(descripcion);
+            casa.setTipo_public(tipo_public);
+            int id = casa.Insertar();
+            casa.setId(id);
+            RESPUESTA resp = new RESPUESTA(1, "", nameAlert + " registrado con exito.", casa.getJson().toString());
+            return resp.toString();
+        } catch (SQLException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al registrar " + nameAlert + ".", "{}");
+            return resp.toString();
+        } catch (JSONException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
+            return resp.toString();
+        }
+    }
+
+    private String getall_casa(HttpServletRequest request, Conexion con) {
+        String nameAlert = "Casa";
+        try {
+            CASA casa = new CASA(con);
+            RESPUESTA resp = new RESPUESTA(1, "", "Exito.", casa.getAll().toString());
+            return resp.toString();
+        } catch (SQLException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al obtener " + nameAlert + ".", "{}");
+            return resp.toString();
+        } catch (JSONException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
+            return resp.toString();
+        }
+    }
+
+    private String getbyid_casa(HttpServletRequest request, Conexion con) {
+        String nameAlert = "Casa";
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            CASA casa = new CASA(con);
+            RESPUESTA resp = new RESPUESTA(1, "", "Exito.", casa.getById(id).toString());
+            return resp.toString();
+        } catch (SQLException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al obtener " + nameAlert + ".", "{}");
+            return resp.toString();
+        } catch (JSONException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
+            return resp.toString();
+        }
+    }
+//</editor-fold>
+    //<editor-fold defaultstate="collapsed" desc="COMENTARIO">
+    private String registrar_comentario(HttpServletRequest request, Conexion con) {
+        String nameAlert = "Comentario";
+        try {
+            //int id= Integer.parseInt(request.getParameter("id"));
+            int id_casa = Integer.parseInt(request.getParameter("id_casa"));
+            int id_usuario = Integer.parseInt(request.getParameter("id_usuario"));
+            String comentario= request.getParameter("comentario");
+            //String nombre= request.getParameter("nombre");
+            COMENTARIO objcomentario = new COMENTARIO(con);
+            objcomentario.setId_casa(id_casa);
+            objcomentario.setId_usuario(id_usuario);
+            objcomentario.setComentario(comentario);
+            objcomentario.setFecha(new Date());
+            int id = objcomentario.Insertar();
+            objcomentario.setId(id);
+            RESPUESTA resp = new RESPUESTA(1, "", nameAlert + " registrado con exito.", objcomentario.getJson().toString());
+            return resp.toString();
+        } catch (SQLException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al registrar " + nameAlert + ".", "{}");
+            return resp.toString();
+        } catch (JSONException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
+            return resp.toString();
+        }
+    }
+
+    private String getall_comentario(HttpServletRequest request, Conexion con) {
+        String nameAlert = "Comentario";
+        try {
+             COMENTARIO objcomentario = new COMENTARIO(con);
+            RESPUESTA resp = new RESPUESTA(1, "", "Exito.", objcomentario.getAll().toString());
+            return resp.toString();
+        } catch (SQLException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al obtener " + nameAlert + ".", "{}");
+            return resp.toString();
+        } catch (JSONException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
+            return resp.toString();
+        }
+    }
+
+    private String getbyid_comentario(HttpServletRequest request, Conexion con) {
+        String nameAlert = "Comentario";
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            COMENTARIO objcomentario = new COMENTARIO(con);
+            RESPUESTA resp = new RESPUESTA(1, "", "Exito.", objcomentario.getById(id).toString());
+            return resp.toString();
+        } catch (SQLException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al obtener " + nameAlert + ".", "{}");
+            return resp.toString();
+        } catch (JSONException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
+            return resp.toString();
+        }
+    }
+//</editor-fold>
+    //<editor-fold defaultstate="collapsed" desc="COSTO">
+    private String registrar_costo(HttpServletRequest request, Conexion con) {
+        String nameAlert = "Costo";
+        try {
+            //int id= Integer.parseInt(request.getParameter("id"));
+            int tipo = Integer.parseInt(request.getParameter("tipo"));
+            double costo = Double.parseDouble(request.getParameter("costo"));
+            int id_casa = Integer.parseInt(request.getParameter("id_casa"));
+            COSTO costos = new COSTO(con);
+            costos.setTipo(tipo);
+            costos.setCosto(tipo);
+            costos.setId_casa(id_casa);
+            int id = costos.Insertar();
+            costos.setId(id);
+            RESPUESTA resp = new RESPUESTA(1, "", nameAlert + " registrado con exito.", costos.getJson().toString());
+            return resp.toString();
+        } catch (SQLException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al registrar " + nameAlert + ".", "{}");
+            return resp.toString();
+        } catch (JSONException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
+            return resp.toString();
+        }
+    }
+
+    private String getall_costo(HttpServletRequest request, Conexion con) {
+        String nameAlert = "Costo";
+        try {
+            COSTO costo = new COSTO(con);
+            RESPUESTA resp = new RESPUESTA(1, "", "Exito.", costo.getAll().toString());
+            return resp.toString();
+        } catch (SQLException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al obtener " + nameAlert + ".", "{}");
+            return resp.toString();
+        } catch (JSONException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
+            return resp.toString();
+        }
+    }
+
+    private String getbyid_costo(HttpServletRequest request, Conexion con) {
+        String nameAlert = "Costo";
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            COSTO costo = new COSTO(con);
+            RESPUESTA resp = new RESPUESTA(1, "", "Exito.", costo.getById(id).toString());
+            return resp.toString();
+        } catch (SQLException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al obtener " + nameAlert + ".", "{}");
+            return resp.toString();
+        } catch (JSONException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
+            return resp.toString();
+        }
+    }
+//</editor-fold> 
+    //<editor-fold defaultstate="collapsed" desc="FOTOS">
+    private String registrar_fotos(HttpServletRequest request, Conexion con) {
+        String nameAlert = "Fotos";
+        try {
+            //int id= Integer.parseInt(request.getParameter("id"));
+            int id_casa = Integer.parseInt(request.getParameter("id_casa"));
+            String url= request.getParameter("url");
+            String nombre= request.getParameter("nombre");
+            FOTOS fotos = new FOTOS(con);
+            fotos.setId_casa(id_casa);
+            fotos.setUrl(url);
+            fotos.setNombre(nombre);
+            fotos.setFecha(new Date());
+            int id = fotos.Insertar();
+            fotos.setId(id);
+            RESPUESTA resp = new RESPUESTA(1, "", nameAlert + " registrado con exito.", fotos.getJson().toString());
+            return resp.toString();
+        } catch (SQLException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al registrar " + nameAlert + ".", "{}");
+            return resp.toString();
+        } catch (JSONException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
+            return resp.toString();
+        }
+    }
+
+    private String getall_fotos(HttpServletRequest request, Conexion con) {
+        String nameAlert = "Fotos";
+        try {
+            FOTOS fotos = new FOTOS(con);
+            RESPUESTA resp = new RESPUESTA(1, "", "Exito.", fotos.getAll().toString());
+            return resp.toString();
+        } catch (SQLException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al obtener " + nameAlert + ".", "{}");
+            return resp.toString();
+        } catch (JSONException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
+            return resp.toString();
+        }
+    }
+
+    private String getbyid_fotos(HttpServletRequest request, Conexion con) {
+        String nameAlert = "Fotos";
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            FOTOS fotos = new FOTOS(con);
+            RESPUESTA resp = new RESPUESTA(1, "", "Exito.", fotos.getById(id).toString());
+            return resp.toString();
+        } catch (SQLException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al obtener " + nameAlert + ".", "{}");
+            return resp.toString();
+        } catch (JSONException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
+            return resp.toString();
+        }
+    }
+//</editor-fold>
+    //<editor-fold defaultstate="collapsed" desc="USUARIO">
     private String registrar_usuario(HttpServletRequest request, Conexion con) {
         try {
             String nombre = request.getParameter("nombre");
@@ -232,5 +579,12 @@ public class adminController extends HttpServlet {
         }
 
     }
+//</editor-fold>
+
+    
+
+
+    
+   
 
 }
