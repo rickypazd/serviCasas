@@ -15,31 +15,28 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class COSTO {
+public class TIPO_PROPIEDAD {
 
     private int id;
-    private int tipo;
-    private int id_casa;
-    private double costo;
+    private String nombre;
+ 
 
     private Conexion con = null;
 
-    private String TBL = "costo";
+    private String TBL = "tipo_propiedad";
 
-    public COSTO(Conexion con) {
+    public TIPO_PROPIEDAD(Conexion con) {
         this.con = con;
     }
 
     public int Insertar() throws SQLException {
         String consulta = "INSERT INTO " + TBL + "(\n"
-                + "tipo, costo, id_casa)\n"
-                + "VALUES (?, ?, ?);";
+                + "nombre)\n"
+                + "VALUES (?);";
         PreparedStatement ps = con.statamet(consulta);
-        ps.setInt(1, getTipo());
-        ps.setDouble(2, getCosto());
-        ps.setInt(3, getId_casa());
+        ps.setString(1, getNombre());
         ps.execute();
-        consulta = "select last_value from " + TBL + "_id_seq ";
+        consulta = "select last_value from "+TBL+"_id_seq ";
         ps = con.statamet(consulta);
         ResultSet rs = ps.executeQuery();
         int id = 0;
@@ -86,56 +83,22 @@ public class COSTO {
         return arr;
     }
 
-    public JSONArray getByIdCasa(int id_casa) throws SQLException, JSONException {
-        String consulta = "select ar.* "
-                + "from " + TBL + " ar where ar.id_casa = " + id_casa;
-        PreparedStatement ps = con.statamet(consulta);
-        ResultSet rs = ps.executeQuery();
-        JSONArray arr = new JSONArray();
-        JSONObject obj;
-        while (rs.next()) {
-            obj = new JSONObject();
-            obj = parseJson(rs);
-            arr.put(obj);
-        }
-        ps.close();
-        rs.close();
-        return arr;
-    }
-
     private JSONObject parseObj;
 
     private JSONObject parseJson(ResultSet rs) throws JSONException, SQLException {
         parseObj = new JSONObject();
         parseObj.put("id", rs.getInt("id"));
-        parseObj.put("id_casa", rs.getInt("id_casa"));
-        parseObj.put("costo", rs.getDouble("costo"));
-        parseObj.put("tipo", rs.getInt("tipo"));
+        parseObj.put("nombre", rs.getString("nombre"));
         return parseObj;
     }
 
     public JSONObject getJson() throws JSONException, SQLException {
         JSONObject obj = new JSONObject();
         obj.put("id", getId());
-        obj.put("id_casa", getId_casa());
-        obj.put("tipo", getTipo());
-        obj.put("costo", getCosto());
-        obj.put("nombre", getTipoStr(getTipo()));
-
+        obj.put("nombre", getNombre());
+        
+       
         return obj;
-    }
-
-    public String getTipoStr(int tipo) {
-        switch (tipo) {
-            case 1:
-                return "Venta";
-            case 2:
-                return "Alquiler";
-            case 3:
-                return "Anticretico";
-
-        }
-        return "Undefined";
     }
 
     public int getId() {
@@ -146,29 +109,15 @@ public class COSTO {
         this.id = id;
     }
 
-    public int getTipo() {
-        return tipo;
+    public String getNombre() {
+        return nombre;
     }
 
-    public void setTipo(int tipo) {
-        this.tipo = tipo;
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
     }
 
-    public int getId_casa() {
-        return id_casa;
-    }
-
-    public void setId_casa(int id_casa) {
-        this.id_casa = id_casa;
-    }
-
-    public double getCosto() {
-        return costo;
-    }
-
-    public void setCosto(double costo) {
-        this.costo = costo;
-    }
+ 
 
     public String getTBL() {
         return TBL;

@@ -28,6 +28,7 @@ public class CASA {
     private double lng;
     private String direccion;
     private int tipo_public;
+    private int id_tipo_propiedad;
 
     private Conexion con = null;
 
@@ -39,8 +40,8 @@ public class CASA {
 
     public int Insertar() throws SQLException {
         String consulta = "INSERT INTO " + TBL + "(\n"
-                + "precio, cant_dormitorios, cant_banhos, metros2, descripcion, lat, lng, direccion, tipo_public, id_usuario)\n"
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+                + "precio, cant_dormitorios, cant_banhos, metros2, descripcion, lat, lng, direccion, tipo_public, id_usuario, id_tipo_propiedad)\n"
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         PreparedStatement ps = con.statamet(consulta);
         ps.setDouble(1, getPrecio());
         ps.setInt(2, getCant_dormitorios());
@@ -52,6 +53,7 @@ public class CASA {
         ps.setString(8, getDireccion());
         ps.setInt(9, getTipo_public());
         ps.setInt(10, getId_usuario());
+        ps.setInt(11, getId_tipo_propiedad());//TODO
         ps.execute();
         consulta = "select last_value from "+TBL+"_id_seq ";
         ps = con.statamet(consulta);
@@ -99,6 +101,24 @@ public class CASA {
         rs.close();
         return arr;
     }
+    public JSONArray getFull() throws SQLException, JSONException {
+        String consulta = "select ar.* "
+                + "from " + TBL + " ar";
+        PreparedStatement ps = con.statamet(consulta);
+        ResultSet rs = ps.executeQuery();
+        JSONArray arr = new JSONArray();
+        JSONObject obj;
+        COSTO costo = new COSTO(con);
+        while (rs.next()) {
+            obj = new JSONObject();
+            obj = parseJson(rs);
+            obj.put("arrCostos",costo.getByIdCasa(obj.getInt("id")));
+            arr.put(obj);
+        }
+        ps.close();
+        rs.close();
+        return arr;
+    }
 
     private JSONObject parseObj;
 
@@ -115,6 +135,7 @@ public class CASA {
         parseObj.put("lng", rs.getDouble("lng"));
         parseObj.put("direccion", rs.getString("direccion") != null ? rs.getString("direccion") : "");
         parseObj.put("tipo_public", rs.getInt("tipo_public"));
+        parseObj.put("id_tipo_propiedad", rs.getInt("id_tipo_propiedad"));
         return parseObj;
     }
 
@@ -131,6 +152,7 @@ public class CASA {
         obj.put("lng", getLng());
         obj.put("direccion", getDireccion());
         obj.put("tipo_public", getTipo_public());
+        obj.put("id_tipo_propiedad", getId_tipo_propiedad());
         return obj;
     }
 
@@ -246,4 +268,14 @@ public class CASA {
         this.parseObj = parseObj;
     }
 
+    public int getId_tipo_propiedad() {
+        return id_tipo_propiedad;
+    }
+
+    public void setId_tipo_propiedad(int id_tipo_propiedad) {
+        this.id_tipo_propiedad = id_tipo_propiedad;
+    }
+
+ 
+    
 }
