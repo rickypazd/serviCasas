@@ -111,6 +111,7 @@ public class COSTO {
         parseObj.put("id_casa", rs.getInt("id_casa"));
         parseObj.put("costo", rs.getDouble("costo"));
         parseObj.put("tipo", rs.getInt("tipo"));
+        parseObj.put("nombre", getTipoStr(rs.getInt("tipo")));
         return parseObj;
     }
 

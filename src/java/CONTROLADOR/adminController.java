@@ -13,6 +13,7 @@ import MODELO.COMENTARIO;
 import MODELO.COSTO;
 import MODELO.FOTOS;
 import MODELO.TIPO_PROPIEDAD;
+import MODELO.TOKEN;
 import MODELO.usuario.USUARIO;
 
 import UTILES.RESPUESTA;
@@ -131,7 +132,7 @@ public class adminController extends HttpServlet {
                     html = getbyid_costo(request, con);
                     break;
                 //</editor-fold>   
-                    //<editor-fold defaultstate="collapsed" desc="TIPO_PROPIEDAD">
+                //<editor-fold defaultstate="collapsed" desc="TIPO_PROPIEDAD">
                 case "registrar_tipo_propiedad":
                     html = registrar_tipo_propiedad(request, con);
                     break;
@@ -151,6 +152,17 @@ public class adminController extends HttpServlet {
                     break;
                 case "getbyid_fotos":
                     html = getbyid_fotos(request, con);
+                    break;
+                //</editor-fold> 
+                //<editor-fold defaultstate="collapsed" desc="TOKEN">
+                case "registrar_token":
+                    html = registrar_token(request, con);
+                    break;
+                case "getall_token":
+                    html = getall_token(request, con);
+                    break;
+                case "getbyid_usr_token":
+                    html = getbyid_usr_token(request, con);
                     break;
                 //</editor-fold> 
                 case "descargar":
@@ -274,6 +286,20 @@ public class adminController extends HttpServlet {
             casa.setTipo_public(tipo_public);
             int id = casa.Insertar();
             casa.setId(id);
+            TOKEN tok = new TOKEN(con);
+            JSONArray tokens = tok.getAll();
+            JSONObject toks;
+            for (int j = 0; j < tokens.length(); j++) {
+                toks = tokens.getJSONObject(j);
+                String token = toks.getString("TOKEN");
+                DataToSend data = new DataToSend(token, "casa_insertada", casa.toString(), id + "");
+                try {
+                    Notificador.enviar(data);
+                } catch (Exception ex) {
+                    Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
             RESPUESTA resp = new RESPUESTA(1, "", nameAlert + " registrado con exito.", casa.getJson().toString());
             return resp.toString();
         } catch (SQLException ex) {
@@ -295,19 +321,19 @@ public class adminController extends HttpServlet {
             //int id= Integer.parseInt(request.getParameter("id"));
             String strcasa = request.getParameter("casa");
             JSONObject objCasa = new JSONObject(strcasa);
-           int id_usuario = objCasa.getInt("id_usr");
+            int id_usuario = objCasa.getInt("id_usr");
 //            int id_usuario = 0;
             double precio = 0;
             JSONArray arrCostos = new JSONArray(objCasa.getString("costos"));
             int cant_dormitorios = objCasa.getInt("cant_dormitorios");
             int cant_banhos = objCasa.getInt("cant_banhos");
-            int metros2 =objCasa.getInt("metros2");
+            int metros2 = objCasa.getInt("metros2");
             String descripcion = objCasa.getString("descripcion");
             double lat = objCasa.getDouble("lat");
             double lng = objCasa.getDouble("lng");
             String direccion = objCasa.getString("direccion");
-            int tipo_public =objCasa.getInt("tipo_public");
-            int id_tipo_propiedad =objCasa.getInt("id_tipo_propiedad");
+            int tipo_public = objCasa.getInt("tipo_public");
+            int id_tipo_propiedad = objCasa.getInt("id_tipo_propiedad");
             CASA casa = new CASA(con);
             casa.setId_usuario(id_usuario);
             casa.setPrecio(precio);
@@ -325,17 +351,29 @@ public class adminController extends HttpServlet {
             JSONObject obj;
             COSTO costo;
             for (int i = 0; i < arrCostos.length(); i++) {
-                obj= arrCostos.getJSONObject(i);
-                if(obj.getBoolean("isActivo")){
-                    costo= new COSTO(con);
+                obj = arrCostos.getJSONObject(i);
+                if (obj.getBoolean("isActivo")) {
+                    costo = new COSTO(con);
                     costo.setId_casa(id);
                     costo.setTipo(obj.getInt("tipo"));
                     costo.setCosto(obj.getDouble("costo"));
                     costo.Insertar();
                 }
-                
+
             }
- 
+            TOKEN tok = new TOKEN(con);
+            JSONArray tokens = tok.getAll();
+            JSONObject toks;
+            for (int j = 0; j < tokens.length(); j++) {
+                toks = tokens.getJSONObject(j);
+                String token = toks.getString("token");
+                DataToSend data = new DataToSend(token, "casa_insertada", casa.toString(), id + "");
+                try {
+                    Notificador.enviar(data);
+                } catch (Exception ex) {
+                    Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
             RESPUESTA resp = new RESPUESTA(1, "", nameAlert + " registrado con exito.", casa.getJson().toString());
             return resp.toString();
         } catch (SQLException ex) {
@@ -369,11 +407,16 @@ public class adminController extends HttpServlet {
             return resp.toString();
         }
     }
-     private String getfull_casa(HttpServletRequest request, Conexion con) {
+
+    private String getfull_casa(HttpServletRequest request, Conexion con) {
         String nameAlert = "Casa";
         try {
             CASA casa = new CASA(con);
             RESPUESTA resp = new RESPUESTA(1, "", "Exito.", casa.getFull().toString());
+             TOKEN tok = new TOKEN(con);
+            JSONArray tokens = tok.getAll();
+            JSONObject toks;
+
             return resp.toString();
         } catch (SQLException ex) {
             con.rollback();
@@ -577,7 +620,7 @@ public class adminController extends HttpServlet {
     private String getall_tipo_propiedad(HttpServletRequest request, Conexion con) {
         String nameAlert = "Tipo de propiedad";
         try {
-           TIPO_PROPIEDAD tipo_propiedad = new TIPO_PROPIEDAD(con);
+            TIPO_PROPIEDAD tipo_propiedad = new TIPO_PROPIEDAD(con);
             RESPUESTA resp = new RESPUESTA(1, "", "Exito.", tipo_propiedad.getAll().toString());
             return resp.toString();
         } catch (SQLException ex) {
@@ -597,7 +640,7 @@ public class adminController extends HttpServlet {
         String nameAlert = "Tipo de propiedad";
         try {
             int id = Integer.parseInt(request.getParameter("id"));
-           TIPO_PROPIEDAD tipo_propiedad = new TIPO_PROPIEDAD(con);
+            TIPO_PROPIEDAD tipo_propiedad = new TIPO_PROPIEDAD(con);
             RESPUESTA resp = new RESPUESTA(1, "", "Exito.", tipo_propiedad.getById(id).toString());
             return resp.toString();
         } catch (SQLException ex) {
@@ -724,6 +767,7 @@ public class adminController extends HttpServlet {
 
             String usuario = request.getParameter("usuario");
             String pass = request.getParameter("pass");
+            String token = request.getParameter("token");
             USUARIO usr = new USUARIO(con);
             JSONObject obj = usr.getByUsrPass(usuario, pass);
             RESPUESTA resp = new RESPUESTA(0, "", "No se encontro el usuario.", obj.toString());
@@ -731,6 +775,16 @@ public class adminController extends HttpServlet {
                 resp.setEstado(1);
                 resp.setResp(obj.toString());
                 resp.setMensaje("Login exitoso.");
+                try {
+                    TOKEN tok = new TOKEN(con);
+                    tok.setId_usr(obj.getInt("id"));
+                    tok.setToken(token);
+                    tok.setFecha(new Date());
+                    tok.Insertar();
+                } catch (Exception exs) {
+                    resp.setMensaje("Login exitoso. No se puedo insertar el token de Firebasse.");
+                }
+
             }
             return resp.toString();
         } catch (SQLException ex) {
@@ -747,5 +801,72 @@ public class adminController extends HttpServlet {
 
     }
 //</editor-fold>
+    //<editor-fold defaultstate="collapsed" desc="TOKEN">
 
+    private String registrar_token(HttpServletRequest request, Conexion con) {
+        String nameAlert = "Token";
+        try {
+            //int id= Integer.parseInt(request.getParameter("id"));
+            int id_usr = Integer.parseInt(request.getParameter("id_usr"));
+            String tokens = request.getParameter("token");
+            TOKEN token = new TOKEN(con);
+            token.setId_usr(id_usr);
+            token.setToken(tokens);
+            token.setFecha(new Date());
+            int id = token.Insertar();
+            token.setId(id);
+            RESPUESTA resp = new RESPUESTA(1, "", nameAlert + " registrado con exito.", token.getJson().toString());
+            return resp.toString();
+        } catch (SQLException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al registrar " + nameAlert + ".", "{}");
+            return resp.toString();
+        } catch (JSONException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
+            return resp.toString();
+        }
+    }
+
+    private String getall_token(HttpServletRequest request, Conexion con) {
+        String nameAlert = "Token";
+        try {
+            TOKEN tokens = new TOKEN(con);
+            RESPUESTA resp = new RESPUESTA(1, "", "Exito.", tokens.getAll().toString());
+            return resp.toString();
+        } catch (SQLException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al obtener " + nameAlert + ".", "{}");
+            return resp.toString();
+        } catch (JSONException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
+            return resp.toString();
+        }
+    }
+
+    private String getbyid_usr_token(HttpServletRequest request, Conexion con) {
+        String nameAlert = "Token";
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            TOKEN tokens = new TOKEN(con);
+            RESPUESTA resp = new RESPUESTA(1, "", "Exito.", tokens.getById_usr(id).toString());
+            return resp.toString();
+        } catch (SQLException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al obtener " + nameAlert + ".", "{}");
+            return resp.toString();
+        } catch (JSONException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
+            return resp.toString();
+        }
+    }
+//</editor-fold>
 }

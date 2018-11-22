@@ -136,6 +136,8 @@ public class CASA {
         parseObj.put("direccion", rs.getString("direccion") != null ? rs.getString("direccion") : "");
         parseObj.put("tipo_public", rs.getInt("tipo_public"));
         parseObj.put("id_tipo_propiedad", rs.getInt("id_tipo_propiedad"));
+        TIPO_PROPIEDAD tp = new TIPO_PROPIEDAD(con);
+        parseObj.put("tipo_propiedad",tp.getById(rs.getInt("id_tipo_propiedad")));
         return parseObj;
     }
 
@@ -153,9 +155,13 @@ public class CASA {
         obj.put("direccion", getDireccion());
         obj.put("tipo_public", getTipo_public());
         obj.put("id_tipo_propiedad", getId_tipo_propiedad());
+        TIPO_PROPIEDAD tp = new TIPO_PROPIEDAD(con);
+        obj.put("tipo_propiedad",tp.getById(getId_tipo_propiedad()));
         return obj;
     }
 
+        
+    
     public int getId() {
         return id;
     }
