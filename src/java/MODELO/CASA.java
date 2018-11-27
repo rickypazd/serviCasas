@@ -55,7 +55,7 @@ public class CASA {
         ps.setInt(10, getId_usuario());
         ps.setInt(11, getId_tipo_propiedad());//TODO
         ps.execute();
-        consulta = "select last_value from "+TBL+"_id_seq ";
+        consulta = "select last_value from " + TBL + "_id_seq ";
         ps = con.statamet(consulta);
         ResultSet rs = ps.executeQuery();
         int id = 0;
@@ -75,8 +75,10 @@ public class CASA {
         ps.setInt(1, id);
         ResultSet rs = ps.executeQuery();
         JSONObject obj = new JSONObject();
+        COSTO costo = new COSTO(con);
         if (rs.next()) {
             obj = parseJson(rs);
+            obj.put("arrCostos", costo.getByIdCasa(obj.getInt("id")));
         } else {
             obj.put("exito", "no");
         }
@@ -101,6 +103,7 @@ public class CASA {
         rs.close();
         return arr;
     }
+
     public JSONArray getFull() throws SQLException, JSONException {
         String consulta = "select ar.* "
                 + "from " + TBL + " ar";
@@ -112,7 +115,7 @@ public class CASA {
         while (rs.next()) {
             obj = new JSONObject();
             obj = parseJson(rs);
-            obj.put("arrCostos",costo.getByIdCasa(obj.getInt("id")));
+            obj.put("arrCostos", costo.getByIdCasa(obj.getInt("id")));
             arr.put(obj);
         }
         ps.close();
@@ -137,7 +140,7 @@ public class CASA {
         parseObj.put("tipo_public", rs.getInt("tipo_public"));
         parseObj.put("id_tipo_propiedad", rs.getInt("id_tipo_propiedad"));
         TIPO_PROPIEDAD tp = new TIPO_PROPIEDAD(con);
-        parseObj.put("tipo_propiedad",tp.getById(rs.getInt("id_tipo_propiedad")));
+        parseObj.put("tipo_propiedad", tp.getById(rs.getInt("id_tipo_propiedad")));
         return parseObj;
     }
 
@@ -156,12 +159,10 @@ public class CASA {
         obj.put("tipo_public", getTipo_public());
         obj.put("id_tipo_propiedad", getId_tipo_propiedad());
         TIPO_PROPIEDAD tp = new TIPO_PROPIEDAD(con);
-        obj.put("tipo_propiedad",tp.getById(getId_tipo_propiedad()));
+        obj.put("tipo_propiedad", tp.getById(getId_tipo_propiedad()));
         return obj;
     }
 
-        
-    
     public int getId() {
         return id;
     }
@@ -282,6 +283,4 @@ public class CASA {
         this.id_tipo_propiedad = id_tipo_propiedad;
     }
 
- 
-    
 }
