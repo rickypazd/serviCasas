@@ -106,7 +106,7 @@ public class CASA {
 
     public JSONArray getFull() throws SQLException, JSONException {
         String consulta = "select ar.* "
-                + "from " + TBL + " ar";
+                + "from " + TBL + " ar limit 5";
         PreparedStatement ps = con.statamet(consulta);
         ResultSet rs = ps.executeQuery();
         JSONArray arr = new JSONArray();

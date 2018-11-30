@@ -120,6 +120,9 @@ public class adminController extends HttpServlet {
                 case "getbyid_comentario":
                     html = getbyid_comentario(request, con);
                     break;
+                case "getbyidCasa_comentario":
+                    html = getbyidCasa_comentario(request, con);
+                    break;
                 //</editor-fold>
                 //<editor-fold defaultstate="collapsed" desc="COSTO">
                 case "registrar_costo":
@@ -413,9 +416,9 @@ public class adminController extends HttpServlet {
         try {
             CASA casa = new CASA(con);
             RESPUESTA resp = new RESPUESTA(1, "", "Exito.", casa.getFull().toString());
-             TOKEN tok = new TOKEN(con);
-            JSONArray tokens = tok.getAll();
-            JSONObject toks;
+//             TOKEN tok = new TOKEN(con);
+//            JSONArray tokens = tok.getAll();
+//            JSONObject toks;
 
             return resp.toString();
         } catch (SQLException ex) {
@@ -450,6 +453,9 @@ public class adminController extends HttpServlet {
             return resp.toString();
         }
     }
+
+   
+   
 //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="COMENTARIO">
 
@@ -508,6 +514,25 @@ public class adminController extends HttpServlet {
             int id = Integer.parseInt(request.getParameter("id"));
             COMENTARIO objcomentario = new COMENTARIO(con);
             RESPUESTA resp = new RESPUESTA(1, "", "Exito.", objcomentario.getById(id).toString());
+            return resp.toString();
+        } catch (SQLException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al obtener " + nameAlert + ".", "{}");
+            return resp.toString();
+        } catch (JSONException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
+            return resp.toString();
+        }
+    }
+    private String getbyidCasa_comentario(HttpServletRequest request, Conexion con) {
+        String nameAlert = "Comentario";
+        try {
+            int id = Integer.parseInt(request.getParameter("id_casa"));
+            COMENTARIO objcomentario = new COMENTARIO(con);
+            RESPUESTA resp = new RESPUESTA(1, "", "Exito.", objcomentario.getByIdCasa(id).toString());
             return resp.toString();
         } catch (SQLException ex) {
             con.rollback();

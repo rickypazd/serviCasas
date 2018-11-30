@@ -26,7 +26,7 @@ public class COMENTARIO {
     private SimpleDateFormat dateForm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private Conexion con = null;
 
-    private String TBL = "fotos";
+    private String TBL = "comentario";
 
     public COMENTARIO(Conexion con) {
         this.con = con;
@@ -70,6 +70,24 @@ public class COMENTARIO {
         ps.close();
         rs.close();
         return obj;
+    }
+    public JSONArray getByIdCasa(int id) throws SQLException, JSONException {
+        String consulta = "select ar.* "
+                + "from " + TBL + " ar\n"
+                + "where ar.id_casa=?";
+        PreparedStatement ps = con.statamet(consulta);
+        ps.setInt(1, id);
+        ResultSet rs = ps.executeQuery();
+        JSONArray arr = new JSONArray();
+        JSONObject obj;
+        while (rs.next()) {
+            obj = new JSONObject();
+            obj = parseJson(rs);
+            arr.put(obj);
+        }
+        ps.close();
+        rs.close();
+        return arr;
     }
 
     public JSONArray getAll() throws SQLException, JSONException {

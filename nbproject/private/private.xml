@@ -3,9 +3,11 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/xavi/Documents/GitHub/serviCasas/src/java/MODELO/CASA.java</file>
-            <file>file:/C:/Users/xavi/Documents/GitHub/serviCasas/src/java/CONTROLADOR/adminController.java</file>
-            <file>file:/C:/Users/xavi/Documents/GitHub/serviCasas/src/java/MODELO/COSTO.java</file>
+            <file>file:/Users/ricardopazdemiquel/NetBeansProjects/serviCasas/src/java/CONTROLADOR/adminController.java</file>
+            <file>file:/Users/ricardopazdemiquel/NetBeansProjects/serviCasas/src/java/Conexion/Conexion.java</file>
+            <file>file:/Users/ricardopazdemiquel/NetBeansProjects/serviCasas/src/java/MODELO/CASA.java</file>
+            <file>file:/Users/ricardopazdemiquel/NetBeansProjects/serviCasas/src/java/MODELO/COMENTARIO.java</file>
+            <file>file:/Users/ricardopazdemiquel/NetBeansProjects/serviCasas/src/java/UTILES/EVENTOS.java</file>
         </group>
     </open-files>
 </project-private>
