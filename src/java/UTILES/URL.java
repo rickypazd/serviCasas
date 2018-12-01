@@ -14,7 +14,7 @@ public class URL {
     //GLOBALES
     public static final String barra = "/";
     public static final String ruta_foto_prefil = "perfiles";
-    public static final String ruta_foto_vehiculo = "perVehiculos";
+    public static final String ruta_foto_casa = "fotocasa";
     public static final String usr_correo = "rickypazd@hotmail.com";
     public static final String pass_correo = "rickypina123";
     

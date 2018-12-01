@@ -15,6 +15,7 @@ import MODELO.FOTOS;
 import MODELO.TIPO_PROPIEDAD;
 import MODELO.TOKEN;
 import MODELO.usuario.USUARIO;
+import UTILES.EVENTOS;
 
 import UTILES.RESPUESTA;
 import UTILES.URL;
@@ -105,6 +106,9 @@ public class adminController extends HttpServlet {
                     break;
                 case "getfull_casa":
                     html = getfull_casa(request, con);
+                    break;
+                case "getfull_casaOpti":
+                    html = getfull_casaOpti(request, con);
                     break;
                 case "getbyid_casa":
                     html = getbyid_casa(request, con);
@@ -433,6 +437,28 @@ public class adminController extends HttpServlet {
             return resp.toString();
         }
     }
+    private String getfull_casaOpti(HttpServletRequest request, Conexion con) {
+        String nameAlert = "Casa";
+        try {
+            CASA casa = new CASA(con);
+            RESPUESTA resp = new RESPUESTA(1, "", "Exito.", casa.getFullOptimo().toString());
+//             TOKEN tok = new TOKEN(con);
+//            JSONArray tokens = tok.getAll();
+//            JSONObject toks;
+
+            return resp.toString();
+        } catch (SQLException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al obtener " + nameAlert + ".", "{}");
+            return resp.toString();
+        } catch (JSONException ex) {
+            con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
+            return resp.toString();
+        }
+    }
 
     private String getbyid_casa(HttpServletRequest request, Conexion con) {
         String nameAlert = "Casa";
@@ -686,10 +712,20 @@ public class adminController extends HttpServlet {
     private String registrar_fotos(HttpServletRequest request, Conexion con) {
         String nameAlert = "Fotos";
         try {
+            
+       int id_casa = Integer.parseInt(request.getParameter("id_casa"));
+        Part file = request.getPart("archibo");
+        String name = "";
+        String names = "";
+
+        if (file != null) {
+            names = file.getSubmittedFileName();
+            String ruta = request.getSession().getServletContext().getRealPath("/");
+            name = EVENTOS.guardar_file(file, ruta + URL.ruta_foto_casa + "/" + id_casa + "/", names);
+        }
             //int id= Integer.parseInt(request.getParameter("id"));
-            int id_casa = Integer.parseInt(request.getParameter("id_casa"));
-            String url = request.getParameter("url");
-            String nombre = request.getParameter("nombre");
+            String url = URL.ruta_foto_casa + "/" + id_casa + "/" + name;
+            String nombre = names;
             FOTOS fotos = new FOTOS(con);
             fotos.setId_casa(id_casa);
             fotos.setUrl(url);
@@ -708,6 +744,16 @@ public class adminController extends HttpServlet {
             con.rollback();
             Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
             RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
+            return resp.toString();
+        } catch (IOException ex) {
+          con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al subir " + nameAlert + ".", "{}");
+            return resp.toString();
+        } catch (ServletException ex) {
+          con.rollback();
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+            RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al subir " + nameAlert + ".", "{}");
             return resp.toString();
         }
     }

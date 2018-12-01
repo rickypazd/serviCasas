@@ -123,6 +123,30 @@ public class CASA {
         return arr;
     }
 
+    public JSONArray getFullOptimo() throws SQLException, JSONException {
+        String consulta = "select ca.*,\n"
+                + "(select  costo from costo where id_casa = ca.id and tipo = 1 ) as costo_venta,\n"
+                + "(select  costo from costo where id_casa = ca.id and tipo = 2 ) as costo_alquiler,\n"
+                + "(select  costo from costo where id_casa = ca.id and tipo = 3 ) as costo_anticretico \n"
+                + "from casa ca";
+        PreparedStatement ps = con.statamet(consulta);
+        ResultSet rs = ps.executeQuery();
+        JSONArray arr = new JSONArray();
+        JSONObject obj;
+        
+        while (rs.next()) {
+            obj = new JSONObject();
+            obj = parseJson(rs);
+            parseObj.put("costo_venta", rs.getDouble("costo_venta"));
+            parseObj.put("costo_alquiler", rs.getDouble("costo_alquiler"));
+            parseObj.put("costo_anticretico", rs.getDouble("costo_anticretico"));
+            arr.put(obj);
+        }
+        ps.close();
+        rs.close();
+        return arr;
+    }
+
     private JSONObject parseObj;
 
     private JSONObject parseJson(ResultSet rs) throws JSONException, SQLException {
