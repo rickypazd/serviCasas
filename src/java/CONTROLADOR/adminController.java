@@ -19,27 +19,16 @@ import UTILES.EVENTOS;
 
 import UTILES.RESPUESTA;
 import UTILES.URL;
+import UTILES.ordenamiento;
+import static UTILES.ordenamiento.OrdenarBurbuja;
 import java.io.*;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import java.nio.file.*;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.MultipartConfig;
@@ -48,8 +37,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
-
-import org.apache.commons.codec.digest.DigestUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -437,6 +424,7 @@ public class adminController extends HttpServlet {
             return resp.toString();
         }
     }
+
     private String getfull_casaOpti(HttpServletRequest request, Conexion con) {
         String nameAlert = "Casa";
         try {
@@ -480,11 +468,8 @@ public class adminController extends HttpServlet {
         }
     }
 
-   
-   
 //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="COMENTARIO">
-
     private String registrar_comentario(HttpServletRequest request, Conexion con) {
         String nameAlert = "Comentario";
         try {
@@ -553,6 +538,7 @@ public class adminController extends HttpServlet {
             return resp.toString();
         }
     }
+
     private String getbyidCasa_comentario(HttpServletRequest request, Conexion con) {
         String nameAlert = "Comentario";
         try {
@@ -712,17 +698,17 @@ public class adminController extends HttpServlet {
     private String registrar_fotos(HttpServletRequest request, Conexion con) {
         String nameAlert = "Fotos";
         try {
-            
-       int id_casa = Integer.parseInt(request.getParameter("id_casa"));
-        Part file = request.getPart("archibo");
-        String name = "";
-        String names = "";
 
-        if (file != null) {
-            names = file.getSubmittedFileName();
-            String ruta = request.getSession().getServletContext().getRealPath("/");
-            name = EVENTOS.guardar_file(file, ruta + URL.ruta_foto_casa + "/" + id_casa + "/", names);
-        }
+            int id_casa = Integer.parseInt(request.getParameter("id_casa"));
+            Part file = request.getPart("archibo");
+            String name = "";
+            String names = "";
+
+            if (file != null) {
+                names = file.getSubmittedFileName();
+                String ruta = request.getSession().getServletContext().getRealPath("/");
+                name = EVENTOS.guardar_file(file, ruta + URL.ruta_foto_casa + "/" + id_casa + "/", names);
+            }
             //int id= Integer.parseInt(request.getParameter("id"));
             String url = URL.ruta_foto_casa + "/" + id_casa + "/" + name;
             String nombre = names;
@@ -746,12 +732,12 @@ public class adminController extends HttpServlet {
             RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al convertir " + nameAlert + " a JSON.", "{}");
             return resp.toString();
         } catch (IOException ex) {
-          con.rollback();
+            con.rollback();
             Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
             RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al subir " + nameAlert + ".", "{}");
             return resp.toString();
         } catch (ServletException ex) {
-          con.rollback();
+            con.rollback();
             Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
             RESPUESTA resp = new RESPUESTA(0, ex.getMessage(), "Error al subir " + nameAlert + ".", "{}");
             return resp.toString();
@@ -940,4 +926,64 @@ public class adminController extends HttpServlet {
         }
     }
 //</editor-fold>
+
+    private void NotificarCasaCercana_busco(Conexion con, double lat, double lng, CASA objCasa) {
+        String nameAlert = "Casa";
+        try {
+
+            CASA casa = new CASA(con);
+            JSONArray arr = casa.getAll_busco();
+            JSONObject objec;
+            ordenamiento or;
+            ordenamiento[] ordenador = new ordenamiento[arr.length()];
+
+            for (int i = 0; i < arr.length(); i++) {
+                objec = arr.getJSONObject(i);
+                or = new ordenamiento((int) distanciaCoord(objec.getDouble("lat"), objec.getDouble("lng"), lat, lng), objec);
+                ordenador[i] = or;
+            }
+
+            ordenador = OrdenarBurbuja(ordenador);
+            JSONArray arr_token;
+            JSONObject obj_token;
+            JSONObject obj;
+            for (ordenamiento ordenador1 : ordenador) {
+                obj = ordenador1.getObj();
+                if (ordenador1.getDist() <= 500) {
+                    arr_token = obj.getJSONArray("tokens");
+                    for (int j = 0; j < arr_token.length(); j++) {
+                        obj_token = arr_token.getJSONObject(j);
+                        String token = obj_token.getString("token");
+                        DataToSend data = new DataToSend(token, "casa_insertada", objCasa.getJson().toString(), objCasa.getId() + "");
+                        Notificador.enviar(data);
+                    }
+                }
+            }
+
+        } catch (SQLException ex) {
+
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+
+        } catch (JSONException ex) {
+
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+
+        } catch (Exception ex) {
+            Logger.getLogger(adminController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public static double distanciaCoord(double lat1, double lng1, double lat2, double lng2) {
+        //double radioTierra = 3958.75;//en millas  
+        double radioTierra = 6371;//en kilómetros  
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLng = Math.toRadians(lng2 - lng1);
+        double sindLat = Math.sin(dLat / 2);
+        double sindLng = Math.sin(dLng / 2);
+        double va1 = Math.pow(sindLat, 2) + Math.pow(sindLng, 2)
+                * Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2));
+        double va2 = 2 * Math.atan2(Math.sqrt(va1), Math.sqrt(1 - va1));
+        double distancia = radioTierra * va2;
+        return distancia;
+    }
 }
