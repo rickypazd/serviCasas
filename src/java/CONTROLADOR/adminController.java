@@ -147,7 +147,7 @@ public class adminController extends HttpServlet {
                 case "getbyid_fotos":
                     html = getbyid_fotos(request, con);
                     break;
-                //</editor-fold> 
+                //</editor-fold>
                 //<editor-fold defaultstate="collapsed" desc="TOKEN">
                 case "registrar_token":
                     html = registrar_token(request, con);
@@ -158,7 +158,7 @@ public class adminController extends HttpServlet {
                 case "getbyid_usr_token":
                     html = getbyid_usr_token(request, con);
                     break;
-                //</editor-fold> 
+                //</editor-fold>
                 case "descargar":
                     descargar(request, response, con);
                     retornar = false;
